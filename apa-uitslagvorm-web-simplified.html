@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA Uitslagvorm</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .results {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">APA Uitslagvorm</h1>
+        
+        <!-- Subject Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Subject Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Subject Name</label>
+                        <input type="text" class="form-control" id="subjectName">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Subject Code</label>
+                        <input type="text" class="form-control" id="subjectCode">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Year</label>
+                        <input type="number" class="form-control" id="year" value="2024">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Semester Weight (%)</label>
+                        <input type="number" class="form-control" id="semesterWeight" value="60">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Exam Weight (%)</label>
+                        <input type="number" class="form-control" id="examWeight" value="40">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Student Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Student Name</label>
+                        <input type="text" class="form-control" id="studentName">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Student Number</label>
+                        <input type="text" class="form-control" id="studentNumber">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Marks -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Assessment Marks</h4>
+            </div>
+            <div class="card-body">
+                <div id="assessments">
+                    <!-- Assessment fields will be added here -->
+                </div>
+                <button class="btn btn-secondary mt-3" onclick="addAssessment()">Add Assessment</button>
+            </div>
+        </div>
+
+        <!-- Exam Mark -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Exam Mark</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Exam Mark (%)</label>
+                        <input type="number" class="form-control" id="examMark">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mb-4">
+            <button class="btn btn-primary" onclick="calculateResults()">Calculate Results</button>
+            <button class="btn btn-success" onclick="exportResults()">Export Results</button>
+        </div>
+
+        <!-- Results Display -->
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        // Initialize assessment counter
+        let assessmentCount = 0;
+
+        // Add assessment fields
+        function addAssessment() {
+            assessmentCount++;
+            const assessmentDiv = document.createElement('div');
+            assessmentDiv.className = 'row mb-3 assessment';
+            assessmentDiv.innerHTML = `
+                <div class="col-md-3">
+                    <label class="form-label">Assessment ${assessmentCount} Marks</label>
+                    <input type="number" class="form-control marks" placeholder="Marks obtained">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Total Marks</label>
+                    <input type="number" class="form-control total" placeholder="Total marks">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Weight (%)</label>
+                    <input type="number" class="form-control weight" placeholder="Weight">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-danger form-control" onclick="removeAssessment(this)">Remove</button>
+                </div>
+            `;
+            document.getElementById('assessments').appendChild(assessmentDiv);
+        }
+
+        // Remove assessment fields
+        function removeAssessment(button) {
+            button.closest('.assessment').remove();
+        }
+
+        // Calculate results
+        function calculateResults() {
+            // Get subject info
+            const subjectName = document.getElementById('subjectName').value;
+            const subjectCode = document.getElementById('subjectCode').value;
+            const year = document.getElementById('year').value;
+            const semesterWeight = parseFloat(document.getElementById('semesterWeight').value) || 0;
+            const examWeight = parseFloat(document.getElementById('examWeight').value) || 0;
+
+            // Validate weights
+            if (semesterWeight + examWeight !== 100) {
+                alert('Semester and Exam weights must total 100%');
+                return;
+            }
+
+            // Get student info
+            const studentName = document.getElementById('studentName').value;
+            const studentNumber = document.getElementById('studentNumber').value;
+            const examMark = parseFloat(document.getElementById('examMark').value) || 0;
+
+            // Get all assessments
+            const assessments = document.querySelectorAll('.assessment');
+            let totalWeight = 0;
+            let semesterMark = 0;
+
+            // Calculate semester mark
+            assessments.forEach(assessment => {
+                const marks = parseFloat(assessment.querySelector('.marks').value) || 0;
+                const total = parseFloat(assessment.querySelector('.total').value) || 1;
+                const weight = parseFloat(assessment.querySelector('.weight').value) || 0;
+
+                totalWeight += weight;
+                const percentage = (marks / total) * 100;
+                semesterMark += (percentage * weight / 100);
+            });
+
+            // Validate assessment weights
+            if (totalWeight !== 100) {
+                alert('Assessment weights must total 100%');
+                return;
+            }
+
+            // Calculate final mark
+            const finalMark = (semesterMark * semesterWeight / 100) + (examMark * examWeight / 100);
+
+            // Display results
+            let results = `Subject: ${subjectName} (${subjectCode})\n`;
+            results += `Year: ${year}\n\n`;
+            results += `Student: ${studentName} (${studentNumber})\n\n`;
+            results += `Assessment Results:\n`;
+
+            assessments.forEach((assessment, index) => {
+                const marks = parseFloat(assessment.querySelector('.marks').value) || 0;
+                const total = parseFloat(assessment.querySelector('.total').value) || 1;
+                const weight = parseFloat(assessment.querySelector('.weight').value) || 0;
+                const percentage = (marks / total) * 100;
+
+                results += `Assessment ${index + 1}: ${marks}/${total} = ${percentage.toFixed(1)}% (Weight: ${weight}%)\n`;
+            });
+
+            results += `\nSemester Mark: ${semesterMark.toFixed(1)}%\n`;
+            results += `Exam Mark: ${examMark.toFixed(1)}%\n`;
+            results += `Final Mark: ${finalMark.toFixed(1)}%`;
+
+            document.getElementById('results').textContent = results;
+        }
+
+        // Export results
+        function exportResults() {
+            const results = document.getElementById('results').textContent;
+            if (!results) {
+                alert('Please calculate results first');
+                return;
+            }
+
+            const blob = new Blob([results], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'APA_Results.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Add initial assessment
+        addAssessment();
+    </script>
+</body>
+</html>
